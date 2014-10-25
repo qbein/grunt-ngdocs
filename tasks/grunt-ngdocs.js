@@ -23,6 +23,7 @@ module.exports = function(grunt) {
           startPage: '/api',
           scripts: ['angular.js'],
           styles: [],
+          example: null,
           title: grunt.config('pkg') ?
             (grunt.config('pkg').title || grunt.config('pkg').name) :
             '',
@@ -32,40 +33,34 @@ module.exports = function(grunt) {
         section = this.target === 'all' ? 'api' : this.target,
         setup;
 
-    //Copy the scripts into their own folder in docs, unless they are remote or default angular.js
+    var httpPattern = /^((https?:)?\/\/|\.\.\/)/;
+    
+    // Copy the scripts into their own folder in docs, unless they are remote or default angular.js
     var gruntScriptsFolder = 'grunt-scripts';
     options.scripts = _.map(options.scripts, function(file) {
       if (file === 'angular.js') {
         return 'js/angular.min.js';
       }
 
-      if (/^((https?:)?\/\/|\.\.\/)/.test(file)) {
+      if (httpPattern.test(file)) {
         return file;
       } else {
-        var filename = file.split('/').pop();
-        //Use path.join here because we aren't sure if options.dest has / or not
-        grunt.file.copy(file, path.join(options.dest, gruntScriptsFolder, filename));
-
-        //Return the script path: doesn't have options.dest in it, it's relative
-        //to the docs folder itself
-        return gruntScriptsFolder + '/' + filename;
+        return copyWithPath(file, gruntScriptsFolder, options.dest);
       }
     });
 
     if (options.image) {
-      if (!/^((https?:)?\/\/|\.\.\/)/.test(options.image)) {
+      if (!httpPattern.test(options.image)) {
         grunt.file.copy(options.image, path.join(options.dest, 'img', options.image));
         options.image = "img/" + options.image;
       }
     }
 
     options.styles = _.map(options.styles, function(file) {
-      if (/^((https?:)?\/\/|\.\.\/)/.test(file)) {
+      if (httpPattern.test(file)) {
         return file;
       } else {
-        var filename = file.split('/').pop();
-        grunt.file.copy(file, path.join(options.dest, 'css', filename));
-        return 'css/' + filename;
+        return copyWithPath(file, 'css', options.dest);
       }
     });
 
@@ -107,7 +102,12 @@ module.exports = function(grunt) {
     grunt.log.writeln('DONE. Generated ' + reader.docs.length + ' pages in ' + (now()-start) + 'ms.');
     done();
   });
-
+  
+  function copyWithPath(src, dest, outputPath) {
+    grunt.file.copy(src, path.join(outputPath, dest, src));
+    return path.join(dest, src);
+  }
+ 
   function prepareSetup(section, options) {
     var setup, data, context = {},
         file = path.resolve(options.dest, 'js/docs-setup.js');
