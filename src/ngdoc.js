@@ -158,6 +158,10 @@ Doc.prototype = {
     return prefix + this.section + '/' + url;
   },
 
+  getExampleFilename: function() {
+    return 'example/' + this.id.replace(':', '.') + '.html';
+  },
+
   markdown: function(text) {
     if (!text) return text;
 
@@ -190,8 +194,8 @@ Doc.prototype = {
 
     parts.forEach(function(text, i) {
       parts[i] = (text || '').
-        replace(/<example(?:\s+module="([^"]*)")?(?:\s+deps="([^"]*)")?(\s+animations="true")?>([\s\S]*?)<\/example>/gmi,
-          function(_, module, deps, animations, content) {
+        replace(/<example(?:\s+module="([^"]*)")?(?:\s+height="([0-9]*)")?(?:\s+deps="([^"]*)")?(\s+animations="true")?>([\s\S]*?)<\/example>/gmi,
+          function(_, module, height, deps, animations, content) {
 
           var example = new Example(self.scenarios);
           if(animations) {
@@ -200,7 +204,16 @@ Doc.prototype = {
           }
 
           example.setModule(module);
-          example.addDeps(deps);
+          example.setHeight(height);
+          
+          self.options.example.scripts.forEach(function(script) {
+            example.addDeps(script);
+          });
+          
+          self.options.example.styles.forEach(function(style) {
+            example.addDeps(style);
+          });
+          
           content.replace(/<file\s+name="([^"]*)"\s*>([\s\S]*?)<\/file>/gmi, function(_, name, content) {
             example.addSource(name, content);
           });
@@ -217,7 +230,9 @@ Doc.prototype = {
             }
             return '';
           })
-          return placeholder(example.toHtml());
+          
+          self.exampleEmbedConfig = example.toEmbedConfig();
+          return placeholder(example.toHtml(self.getExampleFilename()));
         }).
         replace(/(?:\*\s+)?<file.+?src="([^"]+)"(?:\s+tag="([^"]+)")?\s*\/?>/i, function(_, file, tag) {
           if(fs.existsSync(file)) {
@@ -249,8 +264,9 @@ Doc.prototype = {
             replace(/(<doc:scenario>)([\s\S]*)(<\/doc:scenario>)/mi, function(_, before, content){
               example.addSource('scenario.js', content);
             });
-
-          return placeholder(example.toHtml());
+            
+          self.exampleEmbedConfig = example.toEmbedConfig();
+          return placeholder(example.toHtml(self.getExampleFilename()));
         }).
         replace(/^<pre(.*?)>([\s\S]*?)<\/pre>/mi, function(_, attrs, content){
           return placeholder(
@@ -861,7 +877,7 @@ Doc.prototype = {
             method.html_usage_parameters(dom);
             self.html_usage_this(dom);
             method.html_usage_returns(dom);
-
+            
             dom.h('Example', method.example, dom.html);
           });
         });
@@ -876,6 +892,7 @@ Doc.prototype = {
               console.log(property);
             }
             property.html_usage_returns(dom);
+            
             dom.h('Example', property.example, dom.html);
           });
         });
@@ -900,7 +917,7 @@ Doc.prototype = {
             }
             event.html_usage_parameters(dom);
             self.html_usage_this(dom);
-
+            
             dom.h('Example', event.example, dom.html);
           });
         });

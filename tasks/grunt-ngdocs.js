@@ -63,7 +63,36 @@ module.exports = function(grunt) {
         return copyWithPath(file, 'css', options.dest);
       }
     });
-
+    
+    if(options.example) {
+      options.example.scripts = _.map(options.example.scripts, function(file) {
+        if(httpPattern.test(file)) {
+          return file;
+        } else {
+          var examplePath = copyWithPath(file, path.join('example', 'scripts'), options.dest);
+          return examplePath.substr(8);
+        }
+      });
+      
+      // Copy styles folder and get path to styles files that should be linked
+      var __styles = [];
+      _.each(options.example.styles, function(styles) {
+        _.each(styles, function(styles, styleFolder) {
+          _.each(grunt.file.expand(styleFolder + '/**/*'), function(file) {
+            if(!grunt.file.isDir(file)) {
+              copyWithPath(file, path.join('example', 'styles'), options.dest);
+            }
+          });
+          
+          _.each(styles, function(style) {
+            __styles.push(path.join('styles', styleFolder, style));
+          });
+        });
+      });
+      
+      options.example.styles = __styles;
+    }
+    
     setup = prepareSetup(section, options);
 
     grunt.log.writeln('Generating Documentation...');
@@ -83,8 +112,17 @@ module.exports = function(grunt) {
     reader.docs.forEach(function(doc){
       // this hack is here because on OSX angular.module and angular.Module map to the same file.
       var id = doc.id.replace('angular.Module', 'angular.IModule').replace(':', '.'),
-          file = path.resolve(options.dest, 'partials', doc.section, id + '.html');
+          file = path.resolve(options.dest, 'partials', doc.section, id + '.html'),
+          exampleFile = path.resolve(options.dest, 'example', id + '.html');
+          
       grunt.file.write(file, doc.html());
+      
+      if(doc.exampleEmbedConfig) {
+        var data = _.extend({ config: options.example }, doc.exampleEmbedConfig);
+        var content = grunt.file.read(path.resolve(templates, 'example.tmpl'));
+        content = grunt.template.process(content, { data: data });
+        grunt.file.write(exampleFile, content);
+      }
     });
 
     ngdoc.checkBrokenLinks(reader.docs, setup.apis, options);
@@ -133,6 +171,7 @@ module.exports = function(grunt) {
         content, data = {
           scripts: options.scripts,
           styles: options.styles,
+          example: options.example,
           sections: _.keys(setup.sections).join('|'),
           discussions: options.discussions,
           analytics: options.analytics,
@@ -156,6 +195,7 @@ module.exports = function(grunt) {
     setup.startPage = options.startPage;
     setup.discussions = options.discussions;
     setup.scripts = _.map(options.scripts, function(url) { return path.basename(url); });
+    setup.example = setup.example,
     grunt.file.write(setup.__file, 'NG_DOCS=' + JSON.stringify(setup, replacer, 2) + ';');
   }
 

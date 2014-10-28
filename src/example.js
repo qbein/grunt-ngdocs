@@ -16,7 +16,7 @@ function ids(list) {
 
 exports.Example = function(scenarios) {
   this.module = '';
-  this.deps = ['angular.js'];
+  this.deps = [];
   this.html = [];
   this.css = [];
   this.js = [];
@@ -31,6 +31,12 @@ exports.Example.prototype.setModule = function(module) {
     this.module = module;
   }
 };
+
+exports.Example.prototype.setHeight = function(height) {
+  if(height) {
+    this.height = height;
+  }
+}
 
 exports.Example.prototype.addDeps = function(deps) {
   deps && deps.split(/[\s\,]/).forEach(function(dep) {
@@ -66,7 +72,7 @@ exports.Example.prototype.disableAnimations = function() {
   this.animations = false;
 };
 
-exports.Example.prototype.toHtml = function() {
+exports.Example.prototype.toHtml = function(exampleFilename) {
   var html = "<h2>Source</h2>\n";
   html += this.toHtmlEdit();
   html += this.toHtmlTabs();
@@ -77,7 +83,15 @@ exports.Example.prototype.toHtml = function() {
     html += '</div>';
   }
   html += "<h2>Demo</h2>\n";
-  html += this.toHtmlEmbed();
+  
+  var embedConfig = this.toEmbedConfig();
+  if(embedConfig) {
+    html += '<div class="example-frame well"><iframe ';
+    if(this.height) {
+      html += 'style="height:' + this.height + 'px" ';
+    }
+    html += 'src="' + exampleFilename + '"></iframe></div>';
+  }
   return html;
 };
 
@@ -132,16 +146,13 @@ exports.Example.prototype.toHtmlTabs = function() {
   }
 };
 
-exports.Example.prototype.toHtmlEmbed = function() {
-  var out = [];
-  out.push('<div class="well doc-example-live animate-container"');
-  if(this.animations) {
-    out.push(" ng-class=\"{'animations-off':animationsOff == true}\"");
-  }
-  out.push(' ng-embed-app="' + this.module + '"');
-  out.push(' ng-set-html="' + this.html[0].id + '"');
-  out.push(' ng-eval-javascript="' + ids(this.js) + '">');
-  out.push('</div>');
-  return out.join('');
+exports.Example.prototype.toEmbedConfig = function() {
+  return this.module || this.html || this.js
+    ? {
+      module: this.module,
+      html: this.html,
+      js: this.js
+    }
+    : null;
 };
 

@@ -38,7 +38,7 @@ docsApp.directive.ngHtmlWrapLoaded = function(reindentCode, templateMerge, loade
       angular.forEach((attr.ngHtmlWrapLoaded || '').split(' '), function(dep) {
         if (!dep) return;
         var ext = dep.split(/\./).pop();
-
+        
         if (ext == 'css') {
           properties.head += '<link rel="stylesheet" href="' + dep + '" type="text/css">\n';
         } else if(ext == 'js' && dep !== 'angular.js') {

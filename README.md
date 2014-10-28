@@ -43,6 +43,27 @@ ngdocs: {
     imageLink: "http://my-domain.com",
     titleLink: "/api",
     bestMatch: true,
+    example: {
+      // JavaScripts to include
+      scripts: [
+        'bower_components/angular/index.js',
+        'bower_components/underscore/index.js',
+        'bower_components/jquery-1.11.1/index.js',
+        'bower_components/some-library.js'
+      ],
+      // Styles to include; if item is object, key is path to directory
+      // containing css and dependencies, e.g. relatively referenced images,
+      // value is an array of CSS files to load in the example. If array
+      // value is string, string is a single CSS file to include - the CSS
+      // cannot have any dependencies as these will not be copied.
+      styles: [
+        {
+          'bower_components/bootstrap': [
+            'css/bootstrap.css'
+          ]
+        },
+      ]
+    },
     analytics: {
           account: 'UA-08150815-0',
           domainName: 'my-domain.com'
