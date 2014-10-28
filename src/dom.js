@@ -121,22 +121,24 @@ DOM.prototype = {
     this.tag('div', attr, text);
   },
 
-  h: function(heading, content, fn){
+  h: function(heading, content, fn) {
     if (content==undefined || (content instanceof Array && content.length == 0)) return;
-
+    
     this.headingDepth++;
     this.currentHeaders[this.headingDepth - 1] = normalizeHeaderToId(heading);
     this.currentHeaders.length = this.headingDepth;
-
-    var className = null,
-        anchor = null;
+    var anchor = null;
     if (typeof heading == 'string') {
       var id = idFromCurrentHeaders(this.currentHeaders);
       this.anchors.push(id);
       anchor = {'id': id};
-      var classNameValue = this.currentHeaders[this.headingDepth - 1]
-      if(classNameValue == 'hide') classNameValue = '';
-      className = {'class': classNameValue};
+      
+      if(!className) {
+        var classNameValue = this.currentHeaders[this.headingDepth - 1]
+        if(classNameValue == 'hide') classNameValue = '';
+        var classNamePrefix = this.headingDepth > 2 ? this.currentHeaders[1] + '-' : '';
+        var className = {'class': classNamePrefix + classNameValue};
+      }
     }
     this.tag('h' + this.headingDepth, anchor, heading);
     if (content instanceof Array) {
