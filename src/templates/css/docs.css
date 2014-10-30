@@ -304,3 +304,10 @@ ul.events > li > h3 {
   border: 0;
   width: 100%;
 }
+
+.example-frame.well {
+  background: #fff;
+}
+pre {
+  tab-size: 2;
+}
