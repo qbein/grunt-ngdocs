@@ -24,6 +24,7 @@ exports.Example = function(scenarios) {
   this.unit = [];
   this.scenario = [];
   this.scenarios = scenarios;
+  this.baseUrl = '';
 }
 
 exports.Example.prototype.setModule = function(module) {
@@ -45,6 +46,10 @@ exports.Example.prototype.addDeps = function(deps) {
     }
   }, this);
 };
+
+exports.Example.prototype.setBaseUrl = function(baseUrl) {
+  this.baseUrl = baseUrl;
+}
 
 exports.Example.prototype.addSource = function(name, content) {
   var ext = name == 'scenario.js' ? 'scenario' : name.split('.')[1],
@@ -106,6 +111,7 @@ exports.Example.prototype.toHtmlEdit = function() {
   out.push(' source-edit-json="' + ids(this.json) + '"');
   out.push(' source-edit-unit="' + ids(this.unit) + '"');
   out.push(' source-edit-scenario="' + ids(this.scenario) + '"');
+  out.push(' source-edit-base-url="' + this.baseUrl + '"');
   out.push('></div>\n');
   return out.join('');
 };

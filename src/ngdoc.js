@@ -214,6 +214,10 @@ Doc.prototype = {
             example.addDeps(style);
           });
           
+          if(self.options.example.baseUrl) {
+            example.setBaseUrl(self.options.example.baseUrl);
+          }
+          
           content.replace(/<file\s+name="([^"]*)"\s*>([\s\S]*?)<\/file>/gmi, function(_, name, content) {
             example.addSource(name, content);
           });

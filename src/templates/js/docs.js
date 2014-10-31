@@ -90,7 +90,8 @@ docsApp.directive.sourceEdit = function(getEmbeddedTemplate) {
         css: read($attrs.sourceEditCss),
         js: read($attrs.sourceEditJs),
         unit: read($attrs.sourceEditUnit),
-        scenario: read($attrs.sourceEditScenario)
+        scenario: read($attrs.sourceEditScenario),
+        baseUrl: $attrs.sourceEditBaseUrl
       };
       $scope.plunkr = function(e) {
         e.stopPropagation();
@@ -109,10 +110,9 @@ docsApp.directive.sourceEdit = function(getEmbeddedTemplate) {
   }
 };
 
-
 docsApp.serviceFactory.loadedUrls = function($document) {
   var urls = {};
-
+  
   angular.forEach($document.find('script'), function(script) {
     var match = script.src.match(/^.*\/([^\/]*\.js)$/);
     if (match) {
@@ -127,7 +127,7 @@ docsApp.serviceFactory.loadedUrls = function($document) {
       urls.base.push(match);
     }
   });
-
+  
   return urls;
 };
 
@@ -160,7 +160,15 @@ docsApp.serviceFactory.openPlunkr = function(templateMerge, formPostData, loaded
         '</html>\n';
     var scriptDeps = '';
     angular.forEach(loadedUrls.base, function(url) {
-        scriptDeps += '    <script src="' + url + '"></script>\n';
+//        scriptDeps += '    <script src="' + url + '"></script>\n';
+    });
+    angular.forEach(content.deps, function(file) {
+      var ext = file.name.split(/\./).pop();
+      if(ext == 'css') {
+        scriptDeps += '    <link rel="stylesheet" href="' + content.baseUrl + file.name + '" type="text/css">\n';
+      } else if(ext == 'js') {
+        scriptDeps += '    <script src="' + content.baseUrl + file.name + '"></script>\n';
+      }
     });
     angular.forEach(allFiles, function(file) {
       var ext = file.name.split(/\./).pop();
